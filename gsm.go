@@ -282,7 +282,12 @@ func (self *Modem) sendBody(cmd string, body string, args ...interface{}) (Packe
 	return response, nil
 }
 func (self *Modem) Send(cmd string, args ...interface{}) (Packet, error) {
-	return self.send(cmd, args)
+	self.tx <- formatCommand(cmd, args...)
+	response := <-self.rx
+	if _, e := response.(ERROR); e {
+		return response, errors.New("Response was ERROR")
+	}
+	return response, nil
 }
 func (self *Modem) send(cmd string, args ...interface{}) (Packet, error) {
 	self.tx <- formatCommand(cmd, args...)
